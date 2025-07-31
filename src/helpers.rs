@@ -1,22 +1,55 @@
 use ebur128::EbuR128;
 use eyre::{bail, Result};
+use rubato::{
+    Resampler, SincFixedIn, SincInterpolationParameters, SincInterpolationType, WindowFunction,
+};
 
 pub fn audio_resample(
-    data: &[f32],
-    sample_rate0: u32,
-    sample_rate: u32,
-    channels: u16,
+    input: &[f32],
+    from_sample_rate: u32,
+    to_sample_rate: u32,
+    _channels: u16,
 ) -> Vec<f32> {
-    use samplerate::{convert, ConverterType};
-    convert(
-        sample_rate0 as _,
-        sample_rate as _,
-        channels as _,
-        ConverterType::SincBestQuality,
-        data,
+    let params = SincInterpolationParameters {
+        sinc_len: 256,
+        f_cutoff: 0.95,
+        interpolation: SincInterpolationType::Linear,
+        oversampling_factor: 256,
+        window: WindowFunction::BlackmanHarris2,
+    };
+
+    let mut resampler = SincFixedIn::<f32>::new(
+        to_sample_rate as f64 / from_sample_rate as f64,
+        2.0,
+        params,
+        input.len(),
+        1,
     )
-    .unwrap_or_default()
+    .unwrap();
+
+    let waves_in = vec![input.to_vec()];
+
+    let waves_out = resampler.process(&waves_in, None).unwrap();
+
+    waves_out.into_iter().next().unwrap_or_default()
 }
+
+// pub fn audio_resample(
+//     data: &[f32],
+//     sample_rate0: u32,
+//     sample_rate: u32,
+//     channels: u16,
+// ) -> Vec<f32> {
+//     use samplerate::{convert, ConverterType};
+//     convert(
+//         sample_rate0 as _,
+//         sample_rate as _,
+//         channels as _,
+//         ConverterType::SincBestQuality,
+//         data,
+//     )
+//     .unwrap_or_default()
+// }
 
 pub fn stereo_to_mono(stereo_data: &[f32]) -> Result<Vec<f32>> {
     if stereo_data.len() % 2 != 0 {

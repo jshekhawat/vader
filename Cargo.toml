@@ -12,9 +12,9 @@ license = "MIT"
 eyre = "0.6.12"
 ndarray = "0.16.1"
 ort = "=2.0.0-rc.9"
-samplerate = { git = "https://github.com/jshekhawat/rust-samplerate.git", optional = true }
 ebur128 = { version = "0.1.9", optional = true }
 ringbuffer = "0.15.0"
+rubato = "0.16.2"
 
 [dev-dependencies]
 hound = { version = "3.5.1" }
@@ -24,7 +24,7 @@ once_cell = "1.19.0"
 
 [features]
 default = ["helpers"]
-helpers = ["dep:ebur128", "dep:samplerate"]
+helpers = ["dep:ebur128"]
 coreml = ["ort/coreml"]
 directml = ["ort/directml"]
 load-dynamic = ["ort/load-dynamic"]
